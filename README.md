@@ -44,3 +44,5 @@ the dossier for submission. The owner claim contains only a public wallet addres
 The copied `shots.json` is the starter's capture manifest. Its images are not
 included here: the final entry needs three original browser screenshots of our
 completed app on live data, with the manifest updated to match those captures.
+Until those captures exist, `node main.ts` reports that `screenshots/` holds no
+image. Running the local frontend with `node serve.ts` does not require screenshots.
