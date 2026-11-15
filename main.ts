@@ -1,35 +1,51 @@
-// Standard-library-only, network-free packaging. Validate everything before copying.
+// Package validated local inputs with the kit's unchanged dossier writer.
 import { cpSync, existsSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs';
 import { join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildDossier } from './vendor/makefun-frontend.ts';
 
-const here = fileURLToPath(new URL('.', import.meta.url));
-const out = resolve(process.env.MAKEFUN_OUTPUT_DIR ?? '/output');
-const captures = join(here, 'screenshots');
-const caps = {
-  text_max_bytes: 163840,
-  screenshots: { max: 3, max_bytes: 262144 },
+const repository = fileURLToPath(new URL('.', import.meta.url));
+const destination = resolve(process.env.MAKEFUN_OUTPUT_DIR ?? '/output');
+const captureDirectory = join(repository, 'screenshots');
+const limits = {
   app_max_files: 993,
-  app_max_bytes: 16777216,
+  app_max_bytes: 16 * 1024 * 1024,
+  text_max_bytes: 160 * 1024,
+  screenshots: { max: 3, max_bytes: 256 * 1024 },
 };
 
-const files = existsSync(captures) ? readdirSync(captures, { withFileTypes: true }).filter(file => !file.name.startsWith('.')) : [];
-if (files.length !== 3 || files.some(file => !file.isFile() || !/\.(png|jpe?g)$/i.test(file.name))) {
-  throw new Error(`Expected exactly three PNG/JPEG capture files in screenshots/; found ${files.length} visible entries. Capture the three routes in shots.json, remove extra files, and run main.ts again. No output has been copied.`);
-}
-if (out === resolve(here) || out.startsWith(resolve(here) + sep)) {
-  throw new Error('MAKEFUN_OUTPUT_DIR must be outside the repository. Choose an empty directory under /tmp or use /output.');
-}
-if (existsSync(out) && readdirSync(out).length) {
-  throw new Error(`Output directory ${out} is not empty. Choose a new MAKEFUN_OUTPUT_DIR to avoid mixing submissions. No output has been copied.`);
+function captureNames() {
+  const visible = existsSync(captureDirectory)
+    ? readdirSync(captureDirectory, { withFileTypes: true }).filter(entry => !entry.name.startsWith('.')) : [];
+  const acceptable = visible.every(entry => entry.isFile() && /\.(?:png|jpe?g)$/i.test(entry.name));
+  if (visible.length !== 3 || !acceptable) {
+    throw new Error(`Expected exactly three PNG/JPEG captures in screenshots/. Found ${visible.length} visible entries. Use the three routes in shots.json and remove extra entries before packaging. Output is untouched.`);
+  }
+  return visible.map(entry => entry.name).sort();
 }
 
-// The unchanged library verifies signatures, sizes, source limits and references.
-// Building from the inputs first leaves output untouched on any validation error.
-const dossier = buildDossier(here, caps);
-mkdirSync(out, { recursive: true });
-cpSync(join(here, 'app'), join(out, 'app'), { recursive: true });
-mkdirSync(join(out, 'screenshots'));
-for (const file of files) cpSync(join(captures, file.name), join(out, 'screenshots', file.name));
-writeFileSync(join(out, 'dossier.json'), dossier);
+function checkDestination() {
+  const source = resolve(repository);
+  if (destination === source || destination.startsWith(source + sep)) {
+    throw new Error('MAKEFUN_OUTPUT_DIR must be outside the repository. Choose an empty directory under /tmp or /output.');
+  }
+  if (existsSync(destination) && readdirSync(destination).length !== 0) {
+    throw new Error(`MAKEFUN_OUTPUT_DIR is not empty: ${destination}. Choose another directory; no files have been copied.`);
+  }
+}
+
+const names = captureNames();
+checkDestination();
+// Source, image and reference checks finish before the first output write.
+const dossier = buildDossier(repository, limits);
+const dossierMaximum = 1536 * 1024;
+if (dossier.byteLength > dossierMaximum) {
+  throw new Error(`Dossier is ${dossier.byteLength} bytes; this bounty permits ${dossierMaximum}. Reduce app source or capture size before packaging. Output is untouched.`);
+}
+mkdirSync(destination, { recursive: true });
+cpSync(join(repository, 'app'), join(destination, 'app'), { recursive: true });
+mkdirSync(join(destination, 'screenshots'));
+for (const name of names) {
+  cpSync(join(captureDirectory, name), join(destination, 'screenshots', name));
+}
+writeFileSync(join(destination, 'dossier.json'), dossier);

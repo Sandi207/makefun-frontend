@@ -1,18 +1,32 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#f7f5ef">
-<title>Bounties | make.fun</title>
-<link rel="stylesheet" href="style.css">
-<script type="module" src="main.js"></script>
-</head>
-<body>
-<a class="skip" href="#app">Skip to content</a>
-<header class="site-header"><a class="brand" href="#/" aria-label="make.fun bounties">make<span>*</span>fun</a><nav aria-label="Main navigation"><a href="#/">Bounties</a><a href="https://make.fun" target="_blank" rel="noopener noreferrer">make.fun ↗</a></nav></header>
-<main id="app" tabindex="-1" aria-busy="true"><p class="loading">Loading public data…</p></main>
-<noscript><p>This frontend needs JavaScript to read the public make.fun API.</p></noscript>
-<footer><p>Built for the work. <a href="#/">make.fun bounties</a></p><div><span id="notice" role="status" aria-live="polite"></span> <button class="refresh secondary" data-retry>Refresh data</button></div></footer>
-</body>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f7f5ef">
+    <title>Bounties | make.fun</title>
+    <link href="style.css" rel="stylesheet">
+    <script src="main.js" type="module"></script>
+  </head>
+  <body>
+    <a href="#app" class="skip">Skip to content</a>
+    <header class="site-header">
+      <a href="#/" class="brand" aria-label="make.fun bounties">make<span aria-hidden="true">*</span>fun</a>
+      <nav aria-label="Main navigation">
+        <a href="#/">Bounties</a>
+        <a href="https://make.fun" rel="noopener noreferrer" target="_blank">make.fun ↗</a>
+      </nav>
+    </header>
+    <main tabindex="-1" aria-busy="true" id="app">
+      <p class="loading">Loading public data…</p>
+    </main>
+    <noscript><p>This frontend needs JavaScript to read the public make.fun API.</p></noscript>
+    <footer>
+      <p>Built for the work. <a href="#/">make.fun bounties</a></p>
+      <div>
+        <span role="status" aria-live="polite" id="notice"></span>
+        <button type="button" data-retry class="refresh secondary">Refresh data</button>
+      </div>
+    </footer>
+  </body>
 </html>
