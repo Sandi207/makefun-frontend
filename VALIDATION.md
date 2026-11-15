@@ -1,7 +1,38 @@
-# Session 2 validation
+# Final entry validation
 
-Validation was performed offline on 2026-11-15 with Node v24.22.1. No network
-fetches, local server, browser or screenshot generation were attempted.
+Finalization was performed offline on 2026-11-15 with Node v24.22.1. No network
+fetches, local server, browser or screenshot generation were attempted in this
+sandbox. The parent already verified rendering on live data in a real browser
+and supplied three original, unedited JPEG captures. The final packaging
+measurements below include those captures and the profile score fix.
+
+## Profile score fix and Retry review
+
+The parent's live verification found that Public work serialized each score
+object. The saved public profile response at
+`/tmp/codex-ar-test/api-docs/profile-vivid-gecko-35.json` confirms that solution
+scores contain column metadata, a numeric `value` and a formatted `display`.
+The profile now prefers `display`, then `value`, then “Not published”, while
+preserving a plain numeric score, including zero. Null scores are unpublished.
+The selected value is escaped before rendering, as on the leaderboard. Reference
+JSON remains outside the repository.
+
+An additional offline render check read the saved response directly and verified
+all three published score cells. Eleven authored cases covered formatted display
+priority, value fallback, numeric scores and zero, missing/null fields, an empty
+score object and escaped markup. No reference payload was copied into the repo.
+
+The Retry button's `data-retry` click calls `render(true)`. That flag reaches
+every `resource(path, force)` call and bypasses fresh cache reuse. Settled failed
+requests are removed from the in-flight map, allowing a new GET after recovery.
+Explicit retries respect an active Retry-After cooldown. No API recovery defect
+was found, so the existing Retry path is retained.
+
+Mocked clicks through the actual document click handler recovered from both a
+network failure and HTTP 500. Each Retry made a new GET, restored the profile,
+updated the checked notice and set `window.__shotReady` to true. A second click
+on each freshly cached result also made a GET. These checks used a minimal DOM
+facade and mocked fetch, with no browser or live traffic.
 
 ## API evidence and limits
 
@@ -25,9 +56,10 @@ OpenAPI declares public GET access and the following parameters:
 The successful OpenAPI responses have descriptions but **no JSON schemas or
 examples**. The agent docs establish semantic contracts, with ranking/prize
 field names also corroborated by the kit's bundled contract declarations.
-Field compatibility still requires live verification, particularly profile
-picture shapes and the optional requirements payout block. Missing fields are
-shown as unpublished, rather than fabricated as zero or a live prize split.
+The parent verified live rendering; finalization additionally checked profile
+scores against the saved real response. Missing optional fields are shown as
+unpublished, rather than fabricated as zero or a live prize split. Offline
+fixtures do not establish every optional payout shape or CORS header behavior.
 
 The rules document public CORS and minute-bound ETags. OpenAPI/agent docs do not
 prove that browsers can read ETag/Date or send If-None-Match across origins. The
@@ -72,7 +104,7 @@ fixtures; actual browser DOM counts remain unmeasured).
 The unchanged dossier library reports:
 
 ```text
-Totals: first load 3 files, 8126 bytes gzip-9 (22380 raw); later by import() 4 files, 5972 bytes gzip-9; whole app 8 files, 39777 bytes
+Totals: first load 3 files, 8126 bytes gzip-9 (22380 raw); later by import() 4 files, 6030 bytes gzip-9; whole app 8 files, 39935 bytes
 ```
 
 | Initial file | Raw bytes | gzip-9 bytes |
@@ -84,11 +116,11 @@ Totals: first load 3 files, 8126 bytes gzip-9 (22380 raw); later by import() 4 f
 
 8,126 bytes is 7.94 KiB, below the 8-KiB target. These are computed file sizes,
 not observed browser transfer sizes; API JSON and image transfers are excluded.
-The four deferred JS modules total 5,972 gzip bytes. Deferred `surfaces.css` is
+The four deferred JS modules total 6,030 gzip bytes. Deferred `surfaces.css` is
 3,880 raw / 1,253 gzip bytes; it is linked by the shared surface module and is
 not included in the library's literal-import module total. Eagerly loading these
-same view modules and CSS would increase the initial load to 15,351 gzip bytes
-across 8 files: lazy loading saves 7,225 gzip bytes and 5 board file requests.
+same view modules and CSS would increase the initial load to 15,409 gzip bytes
+across 8 files: lazy loading saves 7,283 gzip bytes and 5 board file requests.
 
 Every JS/MJS file passed `node --check`: the five app modules and
 `tests/offline.mjs`. `main.ts` also passed syntax checking and execution.
@@ -97,43 +129,52 @@ rejects its type annotations, so it was excluded from the JS-only syntax sweep.
 
 Two final `main.ts` runs used separate, empty directories outside this repo:
 
-- `/tmp/makefun-final-a-wkkae6mk`
-- `/tmp/makefun-final-b-dwx2khjo`
+- `/tmp/makefun-finalize-a-r2ea0dym`
+- `/tmp/makefun-finalize-b-fk6mhtyx`
 
 All 12 output files and the entire 14-entry tree are byte-identical. Each dossier
 also equals a fresh `buildDossier(output, caps)` result byte for byte.
-Dossier SHA-256: `63d990f6d8fb97108790406a236ccf8b6d174e634a0f63b0c7cfa00d808b8659`.
+Dossier SHA-256: `a616100f1edfd3dd4983475cc11d2546133b922495072108d3297cc2eb81e5db`.
 
 | Packaging measurement | Result | Limit |
 | --- | ---: | ---: |
 | App files/directories (root excluded) | 8 / 0 | 993 entries |
-| App bytes | 39,777 | 16,777,216 |
-| Dossier text including Load block | 41,125 | 163,840 |
-| Dossier JSON with placeholder images | 563,188 | 1,572,864 |
+| App bytes | 39,935 | 16,777,216 |
+| Dossier text including Load block | 41,283 | 163,840 |
+| Dossier JSON with real captures | 336,416 | 1,572,864 |
 | Entire output files/directories | 12 / 2 | 1,000 entries |
-| Entire output bytes | 993,538 | 67,108,864 |
+| Entire output bytes | 596,722 | 67,108,864 |
 
-All source fits without truncation. Current captures are unchanged kit JPEGs:
+All source fits without truncation. `file` verifies that each replacement is a
+JPEG; `ls -l` confirms its byte size. The captures are byte-identical to the
+parent's files in `/tmp/makefun-shots/`, with no editing or recompression:
 
-| Placeholder | Bytes | Dimensions |
+| Real browser capture | Bytes | Dimensions |
 | --- | ---: | --- |
-| 1-board.jpg | 113,857 | 1280 × 800 |
-| 2-bounty.jpg | 160,410 | 1280 × 800 |
-| 3-bounty.jpg | 116,306 | 1280 × 800 |
+| 1-board.jpg | 98,269 | 1280 × 960 |
+| 2-bounty.jpg | 81,363 | 1280 × 960 |
+| 3-bounty.jpg | 40,739 | 390 × 844 |
 
-All three are below 262,144 bytes and meet the dimension limits. The parent must
-remeasure after replacing them; their current viewports differ from `shots.json`.
+All three are below 262,144 bytes, have a long side at most 1280 and a short side
+at least 360, and match their `shots.json` viewports. The first two shot entries
+are unchanged. The third is
+`#/bounty/github-core-clone-01/leaderboard?phase=dev`; the older FPS final phase
+has no published standings and is no longer the capture target. An empty
+`.nojekyll` file is present at the repository root for GitHub Pages.
 
 Vendor SHA-256 matches the kit:
 `4c8da1c8e76490b3a847670f49137d3ec23953e3c988fe6a6cb320fce5739240`.
 The saved API docs, build outputs and measurements JSON remain outside the repo.
 
-## Parent verification
+Final measurements JSON: `/tmp/makefun-finalize-measurements-jmxum9ma.json`.
 
-Replace the three unchanged starter placeholders with original, unedited live
-browser captures. Current placeholder dimensions and dossier sizes validate only
-packaging, not visual correctness. The planned phone capture uses the older FPS bounty’s final leaderboard; confirm
-that its standings are published before capturing. Check `shots.json` routes, reward visibility,
-phone leaderboard columns, actual profile picture fields and all four direct
-URLs/reloads/back/forward. Check keyboard focus, the skip link, image error
-fallbacks, status transitions and screen-reader behavior in a browser.
+## Parent handoff
+
+The parent already verified the app on live data and supplied all three captures.
+The profile correction has been verified offline against the saved live profile
+and the score edge cases above. No live HTTP or local serving was attempted here.
+
+Push the finalized commit, run the kit's submission check, and submit with the
+sealed session recordings. If submission occurs on or after 2026-11-17 00:00 UTC,
+include the required truthful run record. The finalization commit is not pushed
+from this sandbox.

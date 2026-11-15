@@ -1,5 +1,9 @@
 [
   { "file": "1-board.jpg", "path": "#/", "viewport": { "width": 1280, "height": 960 } },
   { "file": "2-bounty.jpg", "path": "#/bounty/makefun-frontend-01", "viewport": { "width": 1280, "height": 960 } },
-  { "file": "3-bounty.jpg", "path": "#/bounty/threejs-fps-01/leaderboard?phase=final", "viewport": { "width": 390, "height": 844 } }
+  {
+    "file": "3-bounty.jpg",
+    "path": "#/bounty/github-core-clone-01/leaderboard?phase=dev",
+    "viewport": { "width": 390, "height": 844 }
+  }
 ]

@@ -38,18 +38,21 @@ MAKEFUN_OUTPUT_DIR=/tmp/makefun-output node main.ts
 Choose an empty output directory outside this repository. `main.ts` checks for
 exactly three captures and validates the dossier before copying any files. It uses
 only Node's standard library and the unchanged kit vendor library; packaging needs
-no network. See [VALIDATION.md](VALIDATION.md) for measured bytes, mocked request counts and live checks still needed.
+no network. See [VALIDATION.md](VALIDATION.md) for measured bytes, mocked request
+counts and the parent's live browser verification.
 
-## Captures still required
+## Live captures
 
-`screenshots/` currently contains the kit's three unchanged placeholder JPEGs.
-They let packaging run and are **not screenshots of this implementation**.
-The parent must replace all three with original, unedited live browser captures
-using the routes and viewports in `shots.json`, then rerun the offline checks and
-packaging. The final capture is planned at a phone viewport. Each image must be
-at most 256 KiB, with long side at most 1280 and short side at least 360 pixels.
+`screenshots/` contains three original, unedited browser captures of this app on
+live data: the board, this competition's bounty page and the GitHub clone bounty's
+development leaderboard at a phone viewport. Their routes and viewports are in
+`shots.json`. Each JPEG is at most 256 KiB, with a long side at most 1280 and a
+short side at least 360 pixels. The files match the parent's captures byte for
+byte.
 
-This build session used saved API documentation and no browser or live HTTP.
-The parent must verify successful response field shapes, CORS-exposed ETag behavior,
-keyboard navigation, phone layout and all four routes against the live API before
-submission. The MIT license and kit vendor library are retained.
+The parent verified rendering on live data and supplied the captures. Finalization
+uses only saved public API reference data and offline checks. Profile scores now
+use the published display, falling back to the value or “Not published”. The empty
+root `.nojekyll` file enables GitHub Pages to serve all files as-is. The MIT license
+and kit vendor library are retained. The parent will push the finalized commit,
+run the kit's submission check and submit with the sealed session recordings.
